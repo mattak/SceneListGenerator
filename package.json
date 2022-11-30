@@ -1,6 +1,6 @@
 {
   "name": "me.mattak.scenelistgenerator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "displayName": "SceneListGenerator",
   "description": "Scene List generation script",
   "unity": "2019.1",

@@ -1,6 +1,6 @@
 {
     "name": "SceneListGenerator.EditorRuntime",
-    "rootNamespace": "",
+    "rootNamespace": "SceneListGenerator.EditorRuntime",
     "references": [],
     "includePlatforms": [
         "Editor"

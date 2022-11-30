@@ -8,74 +8,55 @@ namespace SceneListGenerator.EditorRuntime
 {
     public static class SceneListGenerator
     {
-        // Define your custom generator by using DidReloadScripts
-        // e.g.
-        //   public static class OnScriptsReloadHandler
-        //   {
-        //       [DidReloadScripts]
-        //       private static void OnScriptsReloaded()
-        //       {
-        //           SceneListCodeGenerator.GenerateByEditorBuildSettings(
-        //               "Assets/Scripts/SceneListGenerated.cs",
-        //               "MyNamespace"
-        //           );
-        //       }
-        //   }
+        private const string TemplateFilePath =
+            "Packages/me.mattak.scenelistgenerator/Editor/Templates/SceneListTemplate.txt";
+
         public static void GenerateByEditorBuildSettings(string outputPath, string appNamespace)
         {
             var sceneNames = EditorBuildSettings.scenes.Select(x => Path.GetFileNameWithoutExtension(x.path));
-            Generate(outputPath, appNamespace, sceneNames);
+            Generate(outputPath, TemplateFilePath, appNamespace, sceneNames);
         }
 
-        public static void Generate(string outputPath, string appNamespace, IEnumerable<string> sceneNames)
+        public static void Generate(
+            string outputPath,
+            string templateFile,
+            string appNamespace,
+            IEnumerable<string> sceneNames
+        )
         {
-            var dir = Directory.GetParent(outputPath);
-            if (dir is {Exists: false}) Directory.CreateDirectory(dir.FullName);
+            var fieldsBuilder = new StringBuilder();
+            var sceneEnumsBuilder = new StringBuilder();
 
-            var names = new List<string>();
-            var builder = new StringBuilder();
-            builder.Append(@"namespace ").Append(appNamespace);
-            builder.Append(@"
-{
-    public static class SceneList
-    {");
-
-            foreach (var name in sceneNames)
+            var isFirstLine = true;
+            foreach (var sceneName in sceneNames)
             {
-                names.Add(name);
-                builder.Append("\n        public static readonly string ").Append(name).Append(" = \"")
-                    .Append(name)
+                if (!isFirstLine)
+                {
+                    fieldsBuilder.Append("\n");
+                    sceneEnumsBuilder.Append("\n");
+                }
+
+                isFirstLine = false;
+                fieldsBuilder
+                    .Append("        public const string ")
+                    .Append(sceneName)
+                    .Append(" = \"")
+                    .Append(sceneName)
                     .Append("\";");
+                sceneEnumsBuilder
+                    .Append("            ")
+                    .Append(sceneName)
+                    .Append(",");
             }
 
-            if (names.Count > 0)
+            var body = File.ReadAllText(templateFile)
+                .Replace("#NAMESPACE#", appNamespace)
+                .Replace("#FIELDS#", fieldsBuilder.ToString())
+                .Replace("#SCENE_ENUMS#", sceneEnumsBuilder.ToString());
+
+            File.WriteAllText(outputPath, body);
+            if (!File.Exists(outputPath))
             {
-                builder.Append(@"
-
-        public static readonly string SceneListEntry = ").Append(names[0]).Append(";");
-            }
-
-            builder.Append(@"
-
-        public static readonly string[] SceneListAll = new string[]
-        {");
-            foreach (var name in names)
-            {
-                builder.Append("\n            ").Append(name).Append(",");
-            }
-
-            builder.Append(@"
-        };
-    }
-}");
-
-            if (File.Exists(outputPath))
-            {
-                File.WriteAllText(outputPath, builder.ToString());
-            }
-            else
-            {
-                File.WriteAllText(outputPath, builder.ToString());
                 AssetDatabase.ImportAsset(outputPath);
             }
         }

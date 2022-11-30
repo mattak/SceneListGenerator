@@ -14,15 +14,16 @@ namespace SceneListGenerator.EditorRuntime
             if (importedAssets.Length > 0)
             {
                 var path = importedAssets[0];
-                if (path.EndsWith(".unity") && path.StartsWith("Assets"))
+                var isSceneUpdate = path.EndsWith(".unity") && path.StartsWith("Assets");
+                var isEditorSettingUpdate = path.EndsWith("EditorBuildSettings.asset");
+                if (isSceneUpdate || isEditorSettingUpdate)
                 {
-                    var unityScenePath = importedAssets[0];
-                    Update(unityScenePath);
+                    Update();
                 }
             }
         }
 
-        private static void Update(string unityScenePath)
+        private static void Update()
         {
             var setting = SceneListGeneratorSetting.LoadFromAsset();
             if (setting == null) return;

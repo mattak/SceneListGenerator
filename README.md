@@ -36,7 +36,7 @@ namespace YourNamespace
 }
 ```
 
-The you can safely access to load unity scene.
+Then you can safely access to load unity scene.
 
 ```csharp
 SceneManager.LoadScene(SceneList.Preview);
